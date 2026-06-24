@@ -127,6 +127,13 @@ tokens, build de producción del frontend y despliegue. El **proxy de Vite es de
 desarrollo**: en un despliegue real, frontend y API se sirven detrás del mismo
 dominio (por ejemplo, con Nginx) para mantener el mismo origen.
 
+## Artículo
+
+La historia y las decisiones de diseño de este demo (por qué sesión + cookie
+HttpOnly en vez de un JWT en localStorage, cómo el proxy de Vite evita la pelea
+con CORS y por qué hay CSRF en todas las mutaciones) están explicadas acá:
+[Symfony + React full-stack: conectar un frontend propio a una API con sesión y CSRF](https://sincrodev.com/blog/symfony-react-full-stack-sesion-cookie-csrf/).
+
 ## Licencia
 
 MIT — ver [LICENSE](LICENSE).
