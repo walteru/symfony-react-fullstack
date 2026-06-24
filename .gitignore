@@ -1,0 +1,11 @@
+# Dependencias instaladas en el primer arranque (clone & run); no se versionan.
+backend/vendor/
+frontend/node_modules/
+frontend/dist/
+
+# Overrides locales de entorno
+backend/.env.local
+backend/.env.*.local
+
+# Sistema
+.DS_Store

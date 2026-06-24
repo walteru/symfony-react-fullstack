@@ -1,0 +1,48 @@
+security:
+    # Hash automatico (bcrypt/argon segun disponibilidad) para cualquier User.
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # El usuario se carga desde la base por su email (identificador unico).
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_profiler|_wdt)/
+            security: false
+        main:
+            lazy: true
+            provider: app_user_provider
+            # Firewall stateful (sesion): tras un login manual con Security::login()
+            # el token se guarda en la sesion y viaja en una cookie HttpOnly.
+            # No usamos json_login/form_login porque el login lo maneja AuthController
+            # para poder exigir CSRF tambien en el login (decision de diseno del MVP).
+            context: main
+            # Sin autenticadores interactivos, definimos el punto de entrada: ante
+            # una peticion anonima a una ruta protegida respondemos 401 JSON en vez
+            # de redirigir a un formulario de login.
+            entry_point: App\Security\JsonAuthenticationEntryPoint
+
+    # Solo la PRIMERA regla que matchea se aplica. Las rutas publicas (registro,
+    # login y obtencion del token CSRF) van antes que el resto del API.
+    access_control:
+        - { path: ^/api/health$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/csrf-token$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/me$, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: ROLE_USER }
+
+when@test:
+    security:
+        password_hashers:
+            # En tests bajamos el costo del hash para acelerar la suite.
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

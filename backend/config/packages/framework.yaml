@@ -1,0 +1,20 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+
+    # Tokens CSRF gestionados por security-csrf y guardados en la sesion. El API
+    # exige X-CSRF-Token en toda mutacion (ver AuthController/TaskController).
+    csrf_protection: true
+
+    # La cookie de sesion es HttpOnly (no accesible por JS, mitiga XSS) y
+    # SameSite=lax. Como el frontend consume el API a traves del proxy de Vite,
+    # el navegador ve mismo origen y la cookie viaja sin depender de CORS.
+    session:
+        cookie_httponly: true
+        cookie_samesite: 'lax'
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file

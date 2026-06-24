@@ -1,0 +1,62 @@
+services:
+  # Backend: Symfony 7.4 sirve el API REST/JSON en /api. En el primer arranque el
+  # entrypoint instala dependencias (composer), espera a MySQL, aplica migraciones
+  # y carga datos demo.
+  api:
+    container_name: symreact-api
+    build:
+      context: docker/php-apache
+    volumes:
+      - ./backend/:/var/www/html
+    ports:
+      - '8100:80'
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - symreact-net
+
+  # Frontend: SPA propia en React + Vite. Vite proxyea /api al backend, asi el
+  # navegador ve mismo origen (la cookie de sesion viaja sin depender de CORS).
+  frontend:
+    image: node:20-alpine
+    container_name: symreact-frontend
+    working_dir: /app
+    volumes:
+      - ./frontend/:/app
+    # En el primer arranque instala node_modules si falta (clone & run).
+    command: sh -c "[ -d node_modules ] || npm install; npm run dev -- --host 0.0.0.0 --port 3000"
+    ports:
+      - '8099:3000'
+    depends_on:
+      - api
+    networks:
+      - symreact-net
+
+  # Base: MySQL 8. Credenciales dummy de demo (coinciden con backend/.env).
+  db:
+    image: mysql:8.0
+    container_name: symreact-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app
+    volumes:
+      - symreact-db-data:/var/lib/mysql
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - '3311:3306'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-proot']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - symreact-net
+
+networks:
+  symreact-net:
+
+volumes:
+  symreact-db-data:
