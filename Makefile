@@ -45,3 +45,14 @@ fixtures: ## Carga los datos demo (idempotente)
 
 test: ## Corre la suite de tests del backend (PHPUnit sobre MySQL de tests)
 	docker compose exec api php bin/phpunit
+
+cs: ## Reporta desviaciones de estilo sin modificar nada (PHP CS Fixer, dry-run)
+	docker compose exec -u www-data api vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no
+
+cs-fix: ## Corrige el estilo automaticamente (PHP CS Fixer)
+	docker compose exec -u www-data api vendor/bin/php-cs-fixer fix --using-cache=no
+
+stan: ## Analisis estatico del codigo (PHPStan)
+	docker compose exec -u www-data api php -d memory_limit=512M vendor/bin/phpstan analyse --no-progress
+
+check: cs stan test ## Corre estilo + analisis estatico + tests (control de calidad completo)

@@ -1,0 +1,33 @@
+# Configuracion de PHPStan para este demo.
+#
+# Las extensiones de Symfony, Doctrine y PHPUnit se cargan solas
+# (phpstan/extension-installer): aportan a PHPStan el conocimiento del contenedor
+# de servicios, de los repositorios de Doctrine y de los asserts de PHPUnit, lo
+# que evita falsos positivos tipicos de un proyecto Symfony.
+parameters:
+    # Nivel de exigencia (0 a 9 + "max"). El nivel 6 ya chequea tipos de
+    # propiedades, argumentos y retornos. Este demo pasa limpio, asi que lo
+    # dejamos como piso; subirlo mas exigiria tipar detalles que no aportan al
+    # objetivo didactico.
+    level: 6
+
+    paths:
+        - src
+        - tests
+
+    # bootstrap.php es glue generado por Symfony (carga .env y autoload); no es
+    # codigo nuestro y dispara un falso positivo de "method_exists siempre true".
+    excludePaths:
+        - tests/bootstrap.php
+
+    doctrine:
+        # Patron idiomatico de Doctrine/maker-bundle: las propiedades se declaran
+        # nullable (?string $title = null) para que una entidad recien creada sea
+        # valida antes de asignarse, aunque la columna sea NOT NULL. Aceptamos ese
+        # patron en vez de ensuciar las entidades con tipos no-nulos artificiales.
+        allowNullablePropertyForRequiredField: true
+
+    # El contenedor compilado le permite a phpstan-symfony resolver los tipos
+    # reales de los servicios inyectados ($this->security->getUser(), etc.).
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml

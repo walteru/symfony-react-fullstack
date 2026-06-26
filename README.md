@@ -102,6 +102,10 @@ o inexistente · `422` payload inválido.
 ```bash
 make start        # levanta todo
 make test         # corre la suite PHPUnit (sobre MySQL de tests aislado)
+make cs           # reporta desviaciones de estilo (PHP CS Fixer, sin tocar nada)
+make cs-fix       # corrige el estilo automáticamente (PHP CS Fixer)
+make stan         # análisis estático (PHPStan)
+make check        # estilo + análisis estático + tests (control de calidad completo)
 make logs         # logs en vivo
 make reset-data   # reinicia SOLO los datos de desarrollo (borra el volumen)
 make down         # baja contenedores (conserva los datos)
@@ -118,6 +122,31 @@ Tests funcionales (`WebTestCase`) que cubren registro, login/logout, validación
 CSRF en mutaciones, contrato JSON y **aislamiento entre usuarios** (un usuario no
 puede ver ni tocar tareas de otro). Corren contra una base MySQL de tests
 separada (`app_test`).
+
+## Calidad de código
+
+Además de los tests, el backend usa dos herramientas de calidad que corren
+dentro del contenedor (no hace falta PHP ni Composer en el host):
+
+- **PHP CS Fixer** — formatea el código con las reglas `@PSR12` + `@Symfony`.
+  `make cs` reporta sin tocar nada; `make cs-fix` aplica los arreglos. La
+  configuración está en [`backend/.php-cs-fixer.dist.php`](backend/.php-cs-fixer.dist.php).
+- **PHPStan** (nivel 6) — análisis estático que detecta errores de tipos sin
+  ejecutar el código. Con las extensiones de Symfony, Doctrine y PHPUnit
+  entiende el contenedor de servicios y los repositorios. La configuración está
+  en [`backend/phpstan.dist.neon`](backend/phpstan.dist.neon).
+
+```bash
+make check   # cs + stan + test, lo mismo que correría un CI
+```
+
+Las dos son dependencias `require-dev`, así que se instalan solas en el primer
+arranque (clone & run) junto con el resto.
+
+El razonamiento detrás de la configuración (por qué nivel 6, por qué se acepta
+el patrón de propiedades nullable de Doctrine y qué aporta cada herramienta)
+está explicado acá:
+[PHP CS Fixer y PHPStan: calidad automática en un proyecto Symfony](https://sincrodev.com/blog/php-cs-fixer-phpstan-calidad-automatica-symfony/).
 
 ## Límite deliberado (qué NO es)
 
